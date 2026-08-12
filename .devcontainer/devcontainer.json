@@ -1,0 +1,20 @@
+{
+  "name": "Maria-Md Codespace",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  "settings": {
+    "terminal.integrated.defaultProfile.linux": "bash"
+  },
+  "postCreateCommand": "npm install",
+  "forwardPorts": [3000],
+  "remoteUser": "vscode"
+}
