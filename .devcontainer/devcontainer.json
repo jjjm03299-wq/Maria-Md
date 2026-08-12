@@ -1,20 +1,35 @@
 {
-  "name": "Maria-Md Codespace",
+  "name": "Maria-Md Dev Environment",
   "build": {
     "dockerfile": "Dockerfile"
   },
   "customizations": {
     "vscode": {
       "extensions": [
+        "GitHub.copilot",
         "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode"
-      ]
+        "esbenp.prettier-vscode",
+        "ritwickdey.LiveServer"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
+      }
     }
   },
   "settings": {
     "terminal.integrated.defaultProfile.linux": "bash"
   },
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "npm install && npm run server:dev",
   "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "PIN Generator Dev",
+      "onAutoForward": "notify"
+    }
+  },
   "remoteUser": "vscode"
 }
