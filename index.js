@@ -1,5 +1,5 @@
 const readline = require('readline');
-const chalk = require('chalk');
+const chalk = require('chalk').default || require('chalk');
 const fs = require('fs');
 const path = require('path');
 const { default: makeWASocket, DisconnectReason, useMultiFileAuthState } = require('@whiskeysockets/baileys');

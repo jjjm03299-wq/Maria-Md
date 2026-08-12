@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIN Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .pin-display {
+            background: #f5f5f5;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pin-display.loading {
+            opacity: 0.6;
+        }
+        
+        .pin-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 10px;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .copy-btn {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #667eea;
+        }
+        
+        .copy-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .stats {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+            font-size: 13px;
+            color: #999;
+        }
+        
+        .stat-item {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 PIN Generator</h1>
+        <p class="subtitle">Generate secure 4-digit PINs</p>
+        
+        <div class="pin-display" id="pinDisplay">
+            <span class="pin-number">----</span>
+        </div>
+        
+        <div class="button-group">
+            <button class="generate-btn" id="generateBtn" onclick="generatePin()">
+                Generate PIN
+            </button>
+            <button class="copy-btn" id="copyBtn" onclick="copyToClipboard()" style="display: none;">
+                📋 Copy
+            </button>
+        </div>
+        
+        <div id="message"></div>
+        
+        <div class="stats">
+            <div class="stat-item">Generated PINs: <strong id="count">0</strong></div>
+        </div>
+    </div>
+
+    <script>
+        let currentPin = null;
+        let generatedCount = 0;
+        
+        async function generatePin() {
+            const btn = document.getElementById('generateBtn');
+            const display = document.getElementById('pinDisplay');
+            const message = document.getElementById('message');
+            
+            btn.disabled = true;
+            display.classList.add('loading');
+            message.textContent = '';
+            
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentPin = data.generatedPin;
+                    document.querySelector('.pin-number').textContent = currentPin;
+                    document.getElementById('copyBtn').style.display = 'block';
+                    generatedCount++;
+                    document.getElementById('count').textContent = generatedCount;
+                    
+                    showMessage('✓ PIN generated successfully!', 'success');
+                } else {
+                    showMessage('✗ Failed to generate PIN', 'error');
+                }
+            } catch (error) {
+                showMessage('✗ Error: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                display.classList.remove('loading');
+            }
+        }
+        
+        function copyToClipboard() {
+            if (currentPin) {
+                navigator.clipboard.writeText(currentPin).then(() => {
+                    showMessage('✓ Copied to clipboard!', 'success');
+                }).catch(() => {
+                    showMessage('✗ Failed to copy', 'error');
+                });
+            }
+        }
+        
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = 'message ' + type;
+            
+            setTimeout(() => {
+                message.textContent = '';
+                message.className = '';
+            }, 3000);
+        }
+        
+        // Auto-generate first PIN on load
+        window.addEventListener('load', () => {
+            generatePin();
+        });
+    </script>
+</body>
+</html>
