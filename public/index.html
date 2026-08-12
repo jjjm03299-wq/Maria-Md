@@ -198,6 +198,12 @@
     <script>
         let currentPin = null;
         let generatedCount = 0;
+        let apiAvailable = true;
+        
+        // Generate PIN locally (for GitHub Pages fallback)
+        function generateLocalPin() {
+            return String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+        }
         
         async function generatePin() {
             const btn = document.getElementById('generateBtn');
@@ -209,17 +215,37 @@
             message.textContent = '';
             
             try {
-                const response = await fetch('/api/generate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
+                let pin = null;
+                
+                // Try to fetch from API first
+                if (apiAvailable) {
+                    try {
+                        const response = await fetch('/api/generate', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            timeout: 5000
+                        });
+                        
+                        if (!response.ok) throw new Error('API error');
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            pin = data.generatedPin;
+                        }
+                    } catch (err) {
+                        // API not available, fall back to client-side generation
+                        apiAvailable = false;
+                        pin = generateLocalPin();
                     }
-                });
+                } else {
+                    // Use client-side generation
+                    pin = generateLocalPin();
+                }
                 
-                const data = await response.json();
-                
-                if (data.success) {
-                    currentPin = data.generatedPin;
+                if (pin) {
+                    currentPin = pin;
                     document.querySelector('.pin-number').textContent = currentPin;
                     document.getElementById('copyBtn').style.display = 'block';
                     generatedCount++;
