@@ -6,10 +6,7 @@ const port = process.env.PORT || 3000;
 // Middleware to parse incoming JSON payloads
 app.use(express.json());
 
-// Serve static files from public directory
-app.use(express.static(path.join(__dirname, 'public')));
-
-// POST endpoint to generate a 4-digit PIN
+// API routes (define before static middleware)
 app.post('/api/generate', (req, res) => {
     // Generate a random 4-digit number between 0000 and 9999
     const pin = Math.floor(1000 + Math.random() * 9000).toString();
@@ -19,6 +16,9 @@ app.post('/api/generate', (req, res) => {
         generatedPin: pin
     });
 });
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve index.html for root path
 app.get('/', (req, res) => {
